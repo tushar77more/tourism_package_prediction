@@ -25,6 +25,11 @@ dataset = load_dataset(
 
 df = dataset.to_pandas()
 
+# FIX: Drop the first column if it has no name or is 'Unnamed: 0'
+if df.columns[0].startswith('Unnamed') or df.columns[0] == "":
+    print(f"Dropping index column: {df.columns[0]}")
+    df = df.iloc[:, 1:]
+    
 print("Dataset loaded successfully.")
 print("Initial Shape:", df.shape)
 
