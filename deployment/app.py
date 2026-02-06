@@ -88,11 +88,12 @@ if st.button(" Predict"):
         input_df = pd.DataFrame([data])
 
         try:
-            # IMPORTANT: Reorder columns to match the model's training order
-            # This prevents strings from being sent to the numeric scaler
-            if hasattr(model, 'feature_names_in_'):
-                input_df = input_df[model.feature_names_in_]
+            for col in model.feature_names_in_:
+                if col not in input_df.columns:
+                    input_df[col] = 0
             
+            # Strict reordering
+            input_df = input_df[list(model.feature_names_in_)]
             prediction = model.predict(input_df)[0]
             
             st.divider()
