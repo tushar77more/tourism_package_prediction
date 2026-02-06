@@ -1,4 +1,3 @@
-
 import os
 import json
 import pandas as pd
@@ -17,16 +16,13 @@ from huggingface_hub import HfApi, create_repo
 print("\n TRAINING PIPELINE STARTED\n")
 
 # =====================================================
-#  MLFLOW CONFIG (DEV + PROD SAFE)
+#  MLFLOW CONFIG
 # =====================================================
 MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000")
 MLFLOW_EXPERIMENT_NAME = os.getenv("MLFLOW_EXPERIMENT", "mlops-training-experiment")
 
 mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
 mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
-
-print(f" MLflow Tracking URI: {MLFLOW_TRACKING_URI}")
-print(f" Experiment: {MLFLOW_EXPERIMENT_NAME}")
 
 # =====================================================
 #  HF AUTH
@@ -44,7 +40,9 @@ Xtest  = load_dataset(DATA_REPO_ID, data_files="Xtest.csv", split="train").to_pa
 ytrain = load_dataset(DATA_REPO_ID, data_files="ytrain.csv", split="train").to_pandas().values.ravel()
 ytest  = load_dataset(DATA_REPO_ID, data_files="ytest.csv", split="train").to_pandas().values.ravel()
 
-mlflow.log_param("dataset_repo", DATA_REPO_ID)
+# CLEANUP: Drop Unnamed columns if they snuck in
+Xtrain = Xtrain.loc[:, ~Xtrain.columns.str.contains('^Unnamed')]
+Xtest = Xtest.loc[:, ~Xtest.columns.str.contains('^Unnamed')]
 
 # =====================================================
 #  PREPROCESSING
@@ -58,7 +56,7 @@ preprocessor = ColumnTransformer([
 ])
 
 # =====================================================
-#  MODEL
+#  MODEL PIPELINE
 # =====================================================
 xgb_model = xgb.XGBClassifier(random_state=42, eval_metric="logloss", n_jobs=-1)
 
@@ -68,21 +66,18 @@ model_pipeline = Pipeline([
 ])
 
 param_grid = {
-    "classifier__n_estimators": [100, 200],
+    "classifier__n_estimators": [100],
     "classifier__max_depth": [3, 5],
-    "classifier__learning_rate": [0.01, 0.1],
-    "classifier__subsample": [0.8, 1],
+    "classifier__learning_rate": [0.1],
 }
 
 # =====================================================
 #  TRAIN AND TRACK
 # =====================================================
-
 if mlflow.active_run():
     mlflow.end_run()
     
 with mlflow.start_run(run_name="Tourism_XGB_Run"):
-
     grid_search = GridSearchCV(model_pipeline, param_grid, cv=3, scoring="f1", n_jobs=-1)
     grid_search.fit(Xtrain, ytrain)
 
@@ -96,32 +91,32 @@ with mlflow.start_run(run_name="Tourism_XGB_Run"):
         "test_f1": f1_score(ytest, y_pred_test),
         "test_auc": roc_auc_score(ytest, best_model.predict_proba(Xtest)[:, 1]),
     }
-
     mlflow.log_metrics(metrics)
 
-    mlflow.sklearn.log_model(
-        best_model,
-        artifact_path="model",
-        registered_model_name="Tourism_Purchase_Predictor"
+    mlflow.sklearn.log_model(best_model, artifact_path="model")
+
+# =====================================================
+#  SAVE FOR GITHUB ACTIONS (LOCAL ROOT)
+# =====================================================
+# We save to the root directory so the YAML 'path: tourism_xgb_model.pkl' works!
+model_filename = "tourism_xgb_model.pkl"
+joblib.dump(best_model, model_filename)
+print(f"Local model saved to: {os.path.abspath(model_filename)}")
+
+# =====================================================
+#  HF MODEL REPO UPLOAD (OPTIONAL BACKUP)
+# =====================================================
+try:
+    MODEL_REPO_ID = "tushar77more/tourism_model"
+    create_repo(repo_id=MODEL_REPO_ID, repo_type="model", exist_ok=True, token=HF_TOKEN)
+    api.upload_file(
+        path_or_fileobj=model_filename,
+        path_in_repo=model_filename,
+        repo_id=MODEL_REPO_ID,
+        repo_type="model",
     )
+    print("Model uploaded to HF Model Registry")
+except Exception as e:
+    print(f" HF Model Registry upload skipped/failed: {e}")
 
-    print("\n Metrics:\n", json.dumps({k: float(v) for k,v in metrics.items()}, indent=4))
-
-# =====================================================
-#  SAVE AND HF UPLOAD
-# =====================================================
-os.makedirs("artifacts", exist_ok=True)
-model_path = "artifacts/tourism_xgb_model.pkl"
-joblib.dump(best_model, model_path)
-
-MODEL_REPO_ID = "tushar77more/tourism_model"
-create_repo(repo_id=MODEL_REPO_ID, repo_type="model", exist_ok=True, token=HF_TOKEN)
-
-api.upload_file(
-    path_or_fileobj=model_path,
-    path_in_repo="tourism_xgb_model.pkl",
-    repo_id=MODEL_REPO_ID,
-    repo_type="model",
-)
-
-print("\n TRAINING , TRACKING AND REGISTRATION COMPLETE")
+print("\n TRAINING COMPLETE")
