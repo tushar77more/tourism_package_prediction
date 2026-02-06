@@ -10,17 +10,20 @@ st.title(" Tourism Package Purchase Predictor")
 # --- 1. Load Model ---
 @st.cache_resource
 def load_model():
-    try:
-        # Check if model exists locally first, else download
-        hf_token = os.getenv("MLOps")
-        model_path = hf_hub_download(
-            repo_id="tushar77more/tourism_package_predictor", 
-            filename="tourism_xgb_model.pkl",
-            token=hf_token
-        )
-        return joblib.load(model_path)
-    except Exception as e:
-        st.error(f"Error loading model: {e}")
+    # Since the GitHub workflow pushes the model to the Space, 
+    # it lives in the same folder as app.py!
+    model_filename = "tourism_xgb_model.pkl"
+    
+    if os.path.exists(model_filename):
+        try:
+            return joblib.load(model_filename)
+        except Exception as e:
+            st.error(f"Error loading local model file: {e}")
+            return None
+    else:
+        # Debugging: If it fails, show us what files ARE there
+        st.error(f"Model file '{model_filename}' not found!")
+        st.info(f"Files detected in Space: {os.listdir('.')}")
         return None
 
 model = load_model()
