@@ -77,6 +77,10 @@ param_grid = {
 # =====================================================
 #  TRAIN AND TRACK
 # =====================================================
+
+if mlflow.active_run():
+    mlflow.end_run()
+    
 with mlflow.start_run(run_name="Tourism_XGB_Run"):
 
     grid_search = GridSearchCV(model_pipeline, param_grid, cv=3, scoring="f1", n_jobs=-1)
