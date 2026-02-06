@@ -81,12 +81,12 @@ print("Xtrain:", Xtrain.shape, "Xtest:", Xtest.shape)
 # ---------------------------------
 # Save Locally
 # ---------------------------------
-os.makedirs("/content/drive/MyDrive/tourism_project/data/processed", exist_ok=True)
+os.makedirs("data/processed/", exist_ok=True)
 
-Xtrain_path = "/content/drive/MyDrive/tourism_project/data/processed/Xtrain.csv"
-Xtest_path = "/content/drive/MyDrive/tourism_project/data/processed/Xtest.csv"
-ytrain_path = "/content/drive/MyDrive/tourism_project/data/processed/ytrain.csv"
-ytest_path = "/content/drive/MyDrive/tourism_project/data/processed/ytest.csv"
+Xtrain_path = "data/processed/Xtrain.csv"
+Xtest_path = "data/processed/Xtest.csv"
+ytrain_path = "data/processed/ytrain.csv"
+ytest_path = "data/processed/ytest.csv"
 
 Xtrain.to_csv(Xtrain_path, index=False)
 Xtest.to_csv(Xtest_path, index=False)
@@ -107,6 +107,6 @@ for file_path in files:
         repo_id="tushar77more/tourism_project_dataset",
         repo_type="dataset",
     )
-    print(f"☁ Uploaded: {file_path}")
+    print(f" Uploaded: {file_path}")
 
-print("🎉 Preprocessing pipeline completed successfully!")
+print(" Preprocessing pipeline completed successfully!")
