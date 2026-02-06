@@ -3,7 +3,7 @@ from huggingface_hub import HfApi
 
 api = HfApi(token=os.getenv("MLOps"))
 
-folder_path = "/content/drive/MyDrive/tourism_project/data"
+folder_path = "data"
 
 
 repo_id = "tushar77more/tourism_project_dataset"
