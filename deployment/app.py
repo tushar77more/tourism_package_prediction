@@ -12,9 +12,11 @@ st.title(" Tourism Package Purchase Predictor")
 def load_model():
     try:
         # Check if model exists locally first, else download
+        hf_token = os.getenv("MLOps")
         model_path = hf_hub_download(
             repo_id="tushar77more/tourism_package_predictor", 
-            filename="tourism_xgb_model.pkl"
+            filename="tourism_xgb_model.pkl",
+            token=hf_token
         )
         return joblib.load(model_path)
     except Exception as e:
