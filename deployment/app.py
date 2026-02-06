@@ -2,28 +2,25 @@ import streamlit as st
 import pandas as pd
 import joblib
 import os
-from huggingface_hub import hf_hub_download
 
 st.set_page_config(page_title="Tourism Predictor", layout="wide")
 st.title(" Tourism Package Purchase Predictor")
 
-# --- 1. Load Model ---
+# --- 1. Load Model Locally ---
 @st.cache_resource
 def load_model():
-    # Since the GitHub workflow pushes the model to the Space, 
-    # it lives in the same folder as app.py!
+    # The model is uploaded to the root of the Space via hosting.py
     model_filename = "tourism_xgb_model.pkl"
     
     if os.path.exists(model_filename):
         try:
             return joblib.load(model_filename)
         except Exception as e:
-            st.error(f"Error loading local model file: {e}")
+            st.error(f"Error loading model: {e}")
             return None
     else:
-        # Debugging: If it fails, show us what files ARE there
-        st.error(f"Model file '{model_filename}' not found!")
-        st.info(f"Files detected in Space: {os.listdir('.')}")
+        st.error(f" Model file '{model_filename}' not found in the Space!")
+        st.info(f"Files currently in Space: {os.listdir('.')}")
         return None
 
 model = load_model()
@@ -31,7 +28,6 @@ model = load_model()
 # --- 2. Input UI ---
 st.header(" Customer Information")
 
-# We create inputs for EVERY column mentioned in the error
 col1, col2, col3 = st.columns(3)
 
 with col1:
@@ -58,9 +54,8 @@ with col3:
 Designation = st.selectbox("Designation", ["Manager", "Executive", "Senior Manager", "AVP", "VP"])
 
 # --- 3. Prediction Logic ---
-if st.button("Predict Purchase Intent"):
+if st.button(" Predict Purchase Intent"):
     if model is not None:
-        # Construct the DataFrame with EXACTLY the keys from your error message
         data = {
             'Age': Age,
             'TypeofContact': TypeofContact,
@@ -83,7 +78,6 @@ if st.button("Predict Purchase Intent"):
         input_df = pd.DataFrame([data])
 
         try:
-            # The model pipeline handles the scaling and encoding internally
             prediction = model.predict(input_df)[0]
             
             st.divider()
@@ -95,6 +89,5 @@ if st.button("Predict Purchase Intent"):
         
         except Exception as e:
             st.error(f"Prediction Error: {e}")
-            st.info("Check if categorical values match the training set labels.")
     else:
         st.error("Model not loaded properly.")
