@@ -110,8 +110,8 @@ with mlflow.start_run(run_name="Tourism_XGB_Run"):
 # =====================================================
 #  SAVE AND HF UPLOAD
 # =====================================================
-os.makedirs("/content/drive/MyDrive/tourism_project/artifacts", exist_ok=True)
-model_path = "/content/drive/MyDrive/tourism_project/artifacts/tourism_xgb_model.pkl"
+os.makedirs("artifacts", exist_ok=True)
+model_path = "artifacts/tourism_xgb_model.pkl"
 joblib.dump(best_model, model_path)
 
 MODEL_REPO_ID = "tushar77more/tourism_model"
