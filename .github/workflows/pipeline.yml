@@ -13,20 +13,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
       - name: Install Dependencies
-        run: pip install -r tourism_project/deployment/requirements.txt
+        run: pip install -r deployment/requirements.txt
 
       - name: Upload Dataset to Hugging Face Hub
         env:
           MLOps: ${{ secrets.HF_TOKEN }}
-        run: python tourism_project/model_building/data_register.py
+        run: python model_building/data_register.py
 
 
 # ==========================================================
@@ -37,20 +37,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
       - name: Install Dependencies
-        run: pip install -r tourism_project/deployment/requirements.txt
+        run: pip install -r deployment/requirements.txt
 
       - name: Run Data Preparation
         env:
           MLOps: ${{ secrets.HF_TOKEN }}
-        run: python tourism_project/model_building/prep.py
+        run: python model_building/prep.py
 
 
 # ==========================================================
@@ -61,18 +61,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
       - name: Install Dependencies
-        run: pip install -r tourism_project/deployment/requirements.txt
+        run: pip install -r deployment/requirements.txt
 
       - name: Start MLflow Server
         run: |
+          pip install mlflow
           nohup mlflow ui --host 0.0.0.0 --port 5000 &
           sleep 5
 
@@ -81,7 +82,7 @@ jobs:
           MLOps: ${{ secrets.HF_TOKEN }}
           MLFLOW_TRACKING_URI: http://localhost:5000
           MLFLOW_EXPERIMENT: tourism-package-experiment
-        run: python tourism_project/model_building/train.py
+        run: python model_building/train.py
 
 
 # ==========================================================
@@ -92,17 +93,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.10"
 
       - name: Install Dependencies
-        run: pip install -r tourism_project/deployment/requirements.txt
+        run: pip install -r deployment/requirements.txt
 
       - name: Push Deployment Files to HF Space
         env:
           MLOps: ${{ secrets.HF_TOKEN }}
-        run: python tourism_project/hosting/hosting.py
+        run: python hosting/hosting.py
