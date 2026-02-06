@@ -66,8 +66,8 @@ if st.button(" Predict"):
     if model:
         data = {
             'Age': Age,
-            'MonthlyIncome': MonthlyIncome,     # Added
-            'NumberOfTrips': NumberOfTrips,     # Added
+            'MonthlyIncome': MonthlyIncome,
+            'NumberOfTrips': NumberOfTrips,
             'TypeofContact': TypeofContact,
             'CityTier': CityTier,
             'DurationOfPitch': DurationOfPitch,
@@ -88,13 +88,13 @@ if st.button(" Predict"):
         input_df = pd.DataFrame([data])
 
         try:
-            #prediction = model.predict(input_df)[0]
-            # DEBUG: This will show in your Streamlit app
-            st.write(f"Model Type: {type(model)}") 
-            # It SHOULD say <class 'sklearn.pipeline.Pipeline'>
-            # If it says <class 'xgboost.sklearn.XGBClassifier'>, the preprocessor is missing!
+            # IMPORTANT: Reorder columns to match the model's training order
+            # This prevents strings from being sent to the numeric scaler
+            if hasattr(model, 'feature_names_in_'):
+                input_df = input_df[model.feature_names_in_]
             
             prediction = model.predict(input_df)[0]
+            
             st.divider()
             if prediction == 1:
                 st.balloons()
