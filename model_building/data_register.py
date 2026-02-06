@@ -5,8 +5,6 @@ api = HfApi(token=os.getenv("MLOps"))
 
 folder_path = "/content/drive/MyDrive/tourism_project/data"
 
-# Check local files
-print("Local files:", os.listdir(folder_path))
 
 repo_id = "tushar77more/tourism_project_dataset"
 
