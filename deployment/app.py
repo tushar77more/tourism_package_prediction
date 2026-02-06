@@ -88,8 +88,13 @@ if st.button(" Predict"):
         input_df = pd.DataFrame([data])
 
         try:
-            prediction = model.predict(input_df)[0]
+            #prediction = model.predict(input_df)[0]
+            # DEBUG: This will show in your Streamlit app
+            st.write(f"Model Type: {type(model)}") 
+            # It SHOULD say <class 'sklearn.pipeline.Pipeline'>
+            # If it says <class 'xgboost.sklearn.XGBClassifier'>, the preprocessor is missing!
             
+            prediction = model.predict(input_df)[0]
             st.divider()
             if prediction == 1:
                 st.balloons()
