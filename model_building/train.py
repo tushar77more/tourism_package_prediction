@@ -47,8 +47,18 @@ Xtest = Xtest.loc[:, ~Xtest.columns.str.contains('^Unnamed')]
 # =====================================================
 #  PREPROCESSING
 # =====================================================
-categorical_cols = Xtrain.select_dtypes(include="object").columns.tolist()
-numerical_cols = Xtrain.select_dtypes(exclude="object").columns.tolist()
+categorical_cols = [
+    'TypeofContact', 'Occupation', 'Gender', 'ProductPitched', 
+    'MaritalStatus', 'Designation'
+]
+
+# Define numerical columns EXACTLY as they appear in app.py
+numerical_cols = [
+    'Age', 'MonthlyIncome', 'NumberOfTrips', 'CityTier', 
+    'DurationOfPitch', 'NumberOfPersonVisiting', 'NumberOfFollowups', 
+    'PreferredPropertyStar', 'NumberOfChildrenVisiting', 'OwnCar', 
+    'Passport', 'PitchSatisfactionScore'
+]
 
 preprocessor = ColumnTransformer([
     ("num", StandardScaler(), numerical_cols),
